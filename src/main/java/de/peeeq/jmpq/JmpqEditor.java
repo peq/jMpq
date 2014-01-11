@@ -11,12 +11,12 @@ import com.sun.jna.Pointer;
 import com.sun.jna.ptr.PointerByReference;
 
 public class JmpqEditor implements AutoCloseable {
-	final static StormLib stormLib = (StormLib) Native.loadLibrary("Storm", StormLib.class);
+	static StormLib stormLib = null;
 	private final Pointer mpq;
 
 	/** creates a new mpqeditor opening the given mpq file */
 	public JmpqEditor(File mpqFile) throws JmpqError {
-		checkStormlib();
+		initStormlib();
 		PointerByReference phMPQ = new PointerByReference();
 		short flags = 0;
 		short prio = 0;
@@ -35,12 +35,12 @@ public class JmpqEditor implements AutoCloseable {
 
 
 
-	private void checkStormlib() throws JmpqError {
+	private void initStormlib() throws JmpqError {
 		try {
 			if (stormLib == null) {
-				throw new Exception("Cold not load stormLib");
+				stormLib = (StormLib) Native.loadLibrary("Storm", StormLib.class);
 			}
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			throw new JmpqError(e);
 		}
 	}

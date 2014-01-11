@@ -26,7 +26,7 @@ public class JmpqError extends Exception {
 		super(msg + " " + convertError(errNr));
 	}
 	
-	public JmpqError(Exception e) {
+	public JmpqError(Throwable e) {
 		super(e);
 	}
 
