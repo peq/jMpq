@@ -2,7 +2,7 @@ package de.peeeq.jmpq;
 
 import java.io.IOException;
 
-public class JmpqError extends Exception {
+public class JmpqError extends IOException {
 	private static final long serialVersionUID = -8940862879326571591L;
 
 	final static int ERROR_SUCCESS = 0;

@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 
 import com.google.common.io.Files;
+import com.sun.jna.LastErrorException;
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
@@ -16,11 +17,14 @@ public class JmpqEditor implements AutoCloseable {
 
 	/** creates a new mpqeditor opening the given mpq file */
 	public JmpqEditor(File mpqFile) throws JmpqError {
+		Native.setLastError(0);
 		initStormlib();
 		PointerByReference phMPQ = new PointerByReference();
 		short flags = 0;
 		short prio = 0;
 		
+		Native.setLastError(0);
+		Native.setPreserveLastError(true);
 		handleResult("openArchive " + mpqFile.getAbsolutePath(), stormLib.SFileOpenArchive(mpqFile.getAbsolutePath(), prio, flags, phMPQ));
 		mpq = phMPQ.getValue();
 	}
@@ -29,8 +33,9 @@ public class JmpqEditor implements AutoCloseable {
 
 	private void handleResult(String phase, boolean r) throws JmpqError {
 		if (!r) {
-			throw new JmpqError("Error in " + phase + ": ", stormLib.GetLastError());
+			throw new JmpqError("Error in " + phase + ": ", Native.getLastError());
 		}
+		Native.setLastError(0);
 	}
 
 
@@ -113,8 +118,6 @@ public class JmpqEditor implements AutoCloseable {
 		final int MPQ_COMPRESSION_ADPCM_MONO = (0x40);
 		final int MPQ_COMPRESSION_ADPCM_STEREO = (0x80);
 		final int MPQ_COMPRESSION_LZMA = (0x12);
-
-		int GetLastError();
 
 	}
 
