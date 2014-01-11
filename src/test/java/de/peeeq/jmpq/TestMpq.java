@@ -10,7 +10,7 @@ import org.junit.Test;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 
-public class MpqTests {
+public class TestMpq {
 
 	File map = new File("map.w3m");
 	
