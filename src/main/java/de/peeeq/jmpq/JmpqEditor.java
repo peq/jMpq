@@ -17,7 +17,7 @@ public class JmpqEditor implements AutoCloseable {
 
 	/** creates a new mpqeditor opening the given mpq file */
 	public JmpqEditor(File mpqFile) throws JmpqError {
-		Native.setLastError(0);
+		//Native.setLastError(0);
 		initStormlib();
 		PointerByReference phMPQ = new PointerByReference();
 		short flags = 0;
@@ -66,7 +66,11 @@ public class JmpqEditor implements AutoCloseable {
 		
 		int dwCompression = StormLib.MPQ_COMPRESSION_ZLIB;
 		int dwFlags = StormLib.MPQ_FILE_REPLACEEXISTING + StormLib.MPQ_FILE_COMPRESS;
-		handleResult("injectFile ", stormLib.SFileAddFileEx(mpq, fileToInject.getAbsolutePath(), nameInMpq, dwFlags, dwCompression, dwCompression));
+		if(!stormLib.SFileAddFileEx(mpq, fileToInject.getAbsolutePath(), nameInMpq, dwFlags, dwCompression, dwCompression)){
+			//TODO double current size
+			stormLib.SFileSetMaxFileCount(mpq, 256);
+			handleResult("inject file", stormLib.SFileAddFileEx(mpq, fileToInject.getAbsolutePath(), nameInMpq, dwFlags, dwCompression, dwCompression));
+		}
 	}
 	
 	public void delete(String fileName) throws JmpqError {
@@ -96,6 +100,8 @@ public class JmpqEditor implements AutoCloseable {
 
 		boolean SFileRemoveFile(Pointer hMpq, String szFileName,
 				int dwSearchScope);
+		
+		boolean SFileSetMaxFileCount(Pointer hMpq, int dwMaxFileCount);
 
 		boolean SFileAddFileEx(Pointer hMpq, String szFileName,
 				String szArchivedName, int dwFlags, int dwCompression,
