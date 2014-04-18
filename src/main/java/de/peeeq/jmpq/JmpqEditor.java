@@ -2,7 +2,9 @@ package de.peeeq.jmpq;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 
 import com.google.common.io.Files;
 import com.sun.jna.LastErrorException;
@@ -67,8 +69,31 @@ public class JmpqEditor implements AutoCloseable {
 		int dwCompression = StormLib.MPQ_COMPRESSION_ZLIB;
 		int dwFlags = StormLib.MPQ_FILE_REPLACEEXISTING + StormLib.MPQ_FILE_COMPRESS;
 		if(!stormLib.SFileAddFileEx(mpq, fileToInject.getAbsolutePath(), nameInMpq, dwFlags, dwCompression, dwCompression)){
-			//TODO double current size
-			stormLib.SFileSetMaxFileCount(mpq, 256);
+			//count files in mpq
+			int lines = 1;
+			byte[] szMask = "*".getBytes();
+			byte[] res = new byte[64];
+			Pointer p = stormLib.SFileFindFirstFile(mpq, szMask, res);
+			while(stormLib.SFileFindNextFile(p, res)){
+				lines++;
+			}
+			//round to next power of 2
+			double helper = Math.log10(lines) / Math.log10(2);
+			int a = (int) (helper + 1);
+			int b = (int) (helper);
+			helper = Math.pow(2, a);
+			a = (int) helper;
+			helper = Math.pow(2, b);
+			b = (int) helper;
+			int ad = Math.abs(lines - a);
+			int bd = Math.abs(lines - b);
+			if(ad > bd){
+				lines = b * 2;
+			}else{
+				lines = a * 2;
+			}
+			//set max file count
+			stormLib.SFileSetMaxFileCount(mpq, lines);
 			handleResult("inject file", stormLib.SFileAddFileEx(mpq, fileToInject.getAbsolutePath(), nameInMpq, dwFlags, dwCompression, dwCompression));
 		}
 	}
@@ -106,6 +131,12 @@ public class JmpqEditor implements AutoCloseable {
 		boolean SFileAddFileEx(Pointer hMpq, String szFileName,
 				String szArchivedName, int dwFlags, int dwCompression,
 				int dwCompressionNext);
+		
+		Pointer SFileFindFirstFile(Pointer hmpq, byte[] szMask, byte[] result);
+		
+		boolean SFileFindNextFile(Pointer sh, byte[] result);
+		
+		boolean SFileFindClose(Pointer sh);
 
 		final int MPQ_FILE_IMPLODE = (0x00000100);;
 		final int MPQ_FILE_COMPRESS = (0x00000200);
